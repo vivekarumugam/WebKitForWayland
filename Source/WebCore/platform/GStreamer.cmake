@@ -132,6 +132,7 @@ if ((ENABLE_ENCRYPTED_MEDIA OR ENABLE_ENCRYPTED_MEDIA_V2))
         platform/graphics/gstreamer/WebKitCommonEncryptionDecryptorGStreamer.cpp
         platform/graphics/gstreamer/WebKitClearKeyDecryptorGStreamer.cpp
         platform/graphics/gstreamer/WebKitPlayReadyDecryptorGStreamer.cpp
+        platform/graphics/gstreamer/WebKitOpenCDMiWidevineDecryptorGStreamer.cpp
     )
 
     if (ENABLE_ENCRYPTED_MEDIA_V2)

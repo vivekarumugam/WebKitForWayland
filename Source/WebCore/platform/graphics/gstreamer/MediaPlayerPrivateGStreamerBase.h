@@ -150,6 +150,7 @@ public:
     PlayreadySession* prSession() const;
     virtual void emitSession();
 #endif
+    virtual void emitOCDMSession();
 
     static bool supportsKeySystem(const String& keySystem, const String& mimeType);
     static MediaPlayer::SupportsType extendedSupportsType(const MediaEngineSupportParameters& parameters, MediaPlayer::SupportsType);

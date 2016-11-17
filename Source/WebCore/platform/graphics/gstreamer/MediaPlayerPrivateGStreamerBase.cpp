@@ -114,6 +114,13 @@
 #if ENABLE(ENCRYPTED_MEDIA) || ENABLE(ENCRYPTED_MEDIA_V2)
 #if ENABLE(ENCRYPTED_MEDIA_V2)
 #include "CDMPRSessionGStreamer.h"
+#if PLATFORM(WPE)
+#include <wpe/CDMPrivateEncKeyWPE.h>
+#include <wpe/CDMSessionEncKeyWPE.h>
+#include <Modules/encryptedmedia/CDM.h>
+#include <Modules/encryptedmedia/CDMPrivateClearKey.h>
+#include "WebKitOpenCDMiWidevineDecryptorGStreamer.h"
+#endif
 #endif
 #if USE(PLAYREADY)
 #include "PlayreadySession.h"
@@ -143,10 +150,16 @@ void registerWebKitGStreamerElements()
         gst_element_register(0, "webkitclearkey", GST_RANK_PRIMARY + 100, WEBKIT_TYPE_MEDIA_CK_DECRYPT);
 #endif
 
-#if (ENABLE(ENCRYPTED_MEDIA) || ENABLE(ENCRYPTED_MEDIA_V2)) && USE(PLAYREADY)
+#if (ENABLE(ENCRYPTED_MEDIA) || ENABLE(ENCRYPTED_MEDIA_V2))
+#if  USE(PLAYREADY)
     GRefPtr<GstElementFactory> playReadyDecryptorFactory = gst_element_factory_find("webkitplayreadydec");
     if (!playReadyDecryptorFactory)
         gst_element_register(0, "webkitplayreadydec", GST_RANK_PRIMARY + 100, WEBKIT_TYPE_MEDIA_PLAYREADY_DECRYPT);
+#endif
+
+    GRefPtr<GstElementFactory> widevineDecryptorFactory = gst_element_factory_find("webkitwidevine");
+    if (!widevineDecryptorFactory)
+        gst_element_register(0, "webkitwidevine", GST_RANK_PRIMARY + 100, OPENCDMI_TYPE_WIDEVINE_DECRYPT);
 #endif
 }
 
@@ -1251,6 +1264,24 @@ void MediaPlayerPrivateGStreamerBase::emitSession()
 }
 #endif
 
+void MediaPlayerPrivateGStreamerBase::emitOCDMSession()
+{
+
+    printf(" %s:%s:%d \n", __FILE__, __func__, __LINE__);
+    if (!m_cdmSession)
+        return;
+
+    printf(" %s:%s:%d \n", __FILE__, __func__, __LINE__);
+    CDMSessionEncKey* cdmSession = static_cast<CDMSessionEncKey*>(m_cdmSession);
+    std::string sessionId = (cdmSession->sessionId()).utf8().data();
+    if (sessionId.empty())
+        return;
+
+    printf("$$ %s:%s:%d SessionID = %s\n", __FILE__, __func__, __LINE__, sessionId.c_str());
+    gst_element_send_event(m_pipeline.get(), gst_event_new_custom(GST_EVENT_CUSTOM_DOWNSTREAM_OOB,
+        gst_structure_new("drm-session", "session", G_TYPE_STRING, sessionId.c_str(), nullptr)));
+}
+
 #if ENABLE(ENCRYPTED_MEDIA)
 MediaPlayer::MediaKeyException MediaPlayerPrivateGStreamerBase::addKey(const String& keySystem, const unsigned char* keyData, unsigned keyLength, const unsigned char* /* initData */, unsigned /* initDataLength */ , const String& sessionID)
 {
@@ -1362,6 +1393,10 @@ void MediaPlayerPrivateGStreamerBase::keyAdded()
 #if USE(PLAYREADY)
     emitSession();
 #endif
+
+    if (m_cdmSession) {
+       emitOCDMSession();
+    }
 }
 
 std::unique_ptr<CDMSession> MediaPlayerPrivateGStreamerBase::createSession(const String& keySystem, CDMSessionClient* client)
@@ -1376,6 +1411,9 @@ std::unique_ptr<CDMSession> MediaPlayerPrivateGStreamerBase::createSession(const
         return std::make_unique<CDMPRSessionGStreamer>(client);
 #endif
 
+    if (CDMPrivateEncKey::supportsKeySystem(keySystem)) {
+        return (CDMPrivateEncKey::createSession(client));
+    }
     return nullptr;
 }
 #endif // ENABLE(ENCRYPTED_MEDIA_V2)
@@ -1401,6 +1439,11 @@ bool MediaPlayerPrivateGStreamerBase::supportsKeySystem(const String& keySystem,
     if (equalIgnoringASCIICase(keySystem, "com.microsoft.playready")
         || equalIgnoringASCIICase(keySystem, "com.youtube.playready"))
         return true;
+#endif
+#if ENABLE(ENCRYPTED_MEDIA_V2)
+    if (CDMPrivateEncKey::supportsKeySystemAndMimeType(keySystem,mimeType)) {
+        retrun true;
+    }
 #endif
 
     return false;
