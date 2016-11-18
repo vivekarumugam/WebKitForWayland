@@ -156,11 +156,14 @@ void registerWebKitGStreamerElements()
     if (!playReadyDecryptorFactory)
         gst_element_register(0, "webkitplayreadydec", GST_RANK_PRIMARY + 100, WEBKIT_TYPE_MEDIA_PLAYREADY_DECRYPT);
 #endif
+#endif
 
+#if  ENABLE(ENCRYPTED_MEDIA_V2) && USE(OCDM)
     GRefPtr<GstElementFactory> widevineDecryptorFactory = gst_element_factory_find("webkitwidevine");
     if (!widevineDecryptorFactory)
         gst_element_register(0, "webkitwidevine", GST_RANK_PRIMARY + 100, OPENCDMI_TYPE_WIDEVINE_DECRYPT);
 #endif
+
 }
 
 static int greatestCommonDivisor(int a, int b)
@@ -1264,6 +1267,7 @@ void MediaPlayerPrivateGStreamerBase::emitSession()
 }
 #endif
 
+#if ENABLE(ENCRYPTED_MEDIA_V2) && USE(OCDM)
 void MediaPlayerPrivateGStreamerBase::emitOCDMSession()
 {
 
@@ -1281,6 +1285,7 @@ void MediaPlayerPrivateGStreamerBase::emitOCDMSession()
     gst_element_send_event(m_pipeline.get(), gst_event_new_custom(GST_EVENT_CUSTOM_DOWNSTREAM_OOB,
         gst_structure_new("drm-session", "session", G_TYPE_STRING, sessionId.c_str(), nullptr)));
 }
+#endif
 
 #if ENABLE(ENCRYPTED_MEDIA)
 MediaPlayer::MediaKeyException MediaPlayerPrivateGStreamerBase::addKey(const String& keySystem, const unsigned char* keyData, unsigned keyLength, const unsigned char* /* initData */, unsigned /* initDataLength */ , const String& sessionID)
@@ -1394,9 +1399,11 @@ void MediaPlayerPrivateGStreamerBase::keyAdded()
     emitSession();
 #endif
 
+#if USE(OCDM)
     if (m_cdmSession) {
        emitOCDMSession();
     }
+#endif
 }
 
 std::unique_ptr<CDMSession> MediaPlayerPrivateGStreamerBase::createSession(const String& keySystem, CDMSessionClient* client)
@@ -1411,9 +1418,11 @@ std::unique_ptr<CDMSession> MediaPlayerPrivateGStreamerBase::createSession(const
         return std::make_unique<CDMPRSessionGStreamer>(client);
 #endif
 
+#if USE(OCDM)
     if (CDMPrivateEncKey::supportsKeySystem(keySystem)) {
         return (CDMPrivateEncKey::createSession(client));
     }
+#endif
     return nullptr;
 }
 #endif // ENABLE(ENCRYPTED_MEDIA_V2)
@@ -1440,7 +1449,7 @@ bool MediaPlayerPrivateGStreamerBase::supportsKeySystem(const String& keySystem,
         || equalIgnoringASCIICase(keySystem, "com.youtube.playready"))
         return true;
 #endif
-#if ENABLE(ENCRYPTED_MEDIA_V2)
+#if ENABLE(ENCRYPTED_MEDIA_V2) && USE(OCDM)
     if (CDMPrivateEncKey::supportsKeySystemAndMimeType(keySystem,mimeType)) {
         return true;
     }
