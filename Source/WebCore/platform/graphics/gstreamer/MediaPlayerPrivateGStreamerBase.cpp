@@ -1442,7 +1442,7 @@ bool MediaPlayerPrivateGStreamerBase::supportsKeySystem(const String& keySystem,
 #endif
 #if ENABLE(ENCRYPTED_MEDIA_V2)
     if (CDMPrivateEncKey::supportsKeySystemAndMimeType(keySystem,mimeType)) {
-        retrun true;
+        return true;
     }
 #endif
 

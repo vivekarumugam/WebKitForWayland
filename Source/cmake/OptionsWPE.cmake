@@ -161,6 +161,7 @@ endif ()
 
 if (ENABLE_ENCRYPTED_MEDIA_V2 AND ENABLE_OCDM)
     find_package(OCDM REQUIRED)
+    add_definitions(-DUSE_OCDM=1)
 endif()
 
 if (ENABLE_BREAKPAD)
