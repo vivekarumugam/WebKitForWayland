@@ -1270,20 +1270,16 @@ void MediaPlayerPrivateGStreamerBase::emitSession()
 #if ENABLE(ENCRYPTED_MEDIA_V2) && USE(OCDM)
 void MediaPlayerPrivateGStreamerBase::emitOCDMSession()
 {
-
-    printf(" %s:%s:%d \n", __FILE__, __func__, __LINE__);
     if (!m_cdmSession)
         return;
 
-    printf(" %s:%s:%d \n", __FILE__, __func__, __LINE__);
     CDMSessionEncKey* cdmSession = static_cast<CDMSessionEncKey*>(m_cdmSession);
     std::string sessionId = (cdmSession->sessionId()).utf8().data();
     if (sessionId.empty())
         return;
 
-    printf("$$ %s:%s:%d SessionID = %s\n", __FILE__, __func__, __LINE__, sessionId.c_str());
     gst_element_send_event(m_pipeline.get(), gst_event_new_custom(GST_EVENT_CUSTOM_DOWNSTREAM_OOB,
-        gst_structure_new("drm-session", "session", G_TYPE_STRING, sessionId.c_str(), nullptr)));
+    gst_structure_new("drm-session", "session", G_TYPE_STRING, sessionId.c_str(), nullptr)));
 }
 #endif
 
