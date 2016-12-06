@@ -278,6 +278,7 @@ namespace WebCore {
     macro(writeend) \
     macro(writestart) \
     macro(zoom) \
+    macro(tunerchanged) \
 // end of DOM_EVENT_NAMES_FOR_EACH
 
 struct EventNames {

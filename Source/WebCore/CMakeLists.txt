@@ -267,6 +267,7 @@ set(WebCore_NON_SVG_IDL_FILES
     Modules/speech/SpeechSynthesisUtterance.idl
     Modules/speech/SpeechSynthesisVoice.idl
 
+    Modules/tvcontrol/TVTunerChangedEvent.idl
     Modules/tvcontrol/TVChannel.idl
     Modules/tvcontrol/TVSource.idl
     Modules/tvcontrol/TVTuner.idl
@@ -992,6 +993,7 @@ set(WebCore_SOURCES
     Modules/speech/SpeechSynthesisUtterance.cpp
     Modules/speech/SpeechSynthesisVoice.cpp
 
+    Modules/tvcontrol/TVTunerChangedEvent.cpp
     Modules/tvcontrol/TVChannel.cpp
     Modules/tvcontrol/TVSource.cpp
     Modules/tvcontrol/TVTuner.cpp
